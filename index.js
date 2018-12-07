@@ -1,11 +1,11 @@
-import {Platform, Dimensions} from 'react-native';
-import {Constants} from 'expo';
-import {Buffer} from 'buffer';
+import { Platform, Dimensions } from "react-native";
+import { Constants } from "expo";
+import { Buffer } from "buffer";
 
-const {width, height} = Dimensions.get('window');
+const { width, height } = Dimensions.get("window");
 
-const MIXPANEL_API_URL = 'http://api.mixpanel.com';
-const isIosPlatform = Platform.OS === 'ios';
+const MIXPANEL_API_URL = "http://api.mixpanel.com";
+const isIosPlatform = Platform.OS === "ios";
 
 export default class ExpoMixpanelAnalytics {
   constructor(token) {
@@ -17,28 +17,27 @@ export default class ExpoMixpanelAnalytics {
     this.clientId = Constants.deviceId;
     this.identify(this.clientId);
 
-    Constants.getWebViewUserAgentAsync()
-      .then(userAgent => {
-        this.userAgent = userAgent;
-        this.appName = Constants.manifest.name;
-        this.appId = Constants.manifest.slug;
-        this.appVersion = Constants.manifest.version;
-        this.screenSize = `${width}x${height}`;
-        this.deviceName = Constants.deviceName;
-        if (isIosPlatform) {
-          this.platform = Constants.platform.ios.platform;
-          this.model = Constants.platform.ios.model;
-          this.osVersion = Constants.platform.ios.systemVersion;
-        } else {
-          this.platform = "android";
-        }
+    Constants.getWebViewUserAgentAsync().then(userAgent => {
+      this.userAgent = userAgent;
+      this.appName = Constants.manifest.name;
+      this.appId = Constants.manifest.slug;
+      this.appVersion = Constants.manifest.version;
+      this.screenSize = `${width}x${height}`;
+      this.deviceName = Constants.deviceName;
+      if (isIosPlatform) {
+        this.platform = Constants.platform.ios.platform;
+        this.model = Constants.platform.ios.model;
+        this.osVersion = Constants.platform.ios.systemVersion;
+      } else {
+        this.platform = "android";
+      }
 
-        this.ready = true;
-        this._flush();
-      });
+      this.ready = true;
+      this._flush();
+    });
   }
 
-  track(name, props) {
+  track(name, props = {}) {
     this.queue.push({
       name,
       props
@@ -55,31 +54,31 @@ export default class ExpoMixpanelAnalytics {
   }
 
   people_set(props) {
-    this._people('set', props);
+    this._people("set", props);
   }
 
   people_set_once(props) {
-    this._people('set_once', props);
+    this._people("set_once", props);
   }
 
   people_unset(props) {
-    this._people('unset', props);
+    this._people("unset", props);
   }
 
   people_increment(props) {
-    this._people('add', props);
+    this._people("add", props);
   }
 
   people_append(props) {
-    this._people('append', props);
+    this._people("append", props);
   }
 
   people_union(props) {
-    this._people('union', props);
+    this._people("union", props);
   }
 
   people_delete_user() {
-    this._people('delete', '');
+    this._people("delete", "");
   }
 
   // ===========================================================================================
@@ -88,8 +87,7 @@ export default class ExpoMixpanelAnalytics {
     if (this.ready) {
       while (this.queue.length) {
         const event = this.queue.pop();
-        this._pushEvent(event)
-          .then(() => event.sent = true);
+        this._pushEvent(event).then(() => (event.sent = true));
       }
     }
   }
@@ -97,8 +95,8 @@ export default class ExpoMixpanelAnalytics {
   _people(operation, props) {
     if (this.userId) {
       const data = {
-        "$token": this.token,
-        "$distinct_id": this.userId
+        $token: this.token,
+        $distinct_id: this.userId
       };
       data[`$${operation}`] = props;
 
@@ -132,13 +130,13 @@ export default class ExpoMixpanelAnalytics {
       data.properties.os_version = this.osVersion;
     }
 
-    data = new Buffer(JSON.stringify(data)).toString('base64');
+    data = new Buffer(JSON.stringify(data)).toString("base64");
 
     return fetch(`${MIXPANEL_API_URL}/track/?data=${data}`);
   }
 
   _pushProfile(data) {
-    data = new Buffer(JSON.stringify(data)).toString('base64');
+    data = new Buffer(JSON.stringify(data)).toString("base64");
     return fetch(`${MIXPANEL_API_URL}/engage/?data=${data}`);
   }
 }

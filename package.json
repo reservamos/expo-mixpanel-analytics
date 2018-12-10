@@ -23,12 +23,12 @@
     "url": "https://github.com/codekadiya/expo-mixpanel-analytics/issues"
   },
   "dependencies": {
-    "buffer": "^5.0.8"
+    "buffer": "^5.0.8",
+    "react-native-network-info": "^4.0.0"
   },
   "devDependencies": {
     "expo": "^20.0.0",
     "react": "16.0.0-alpha.12",
-    "react-native": "https://github.com/expo/react-native/archive/sdk-20.0.0.tar.gz",
-    "react-native-network-info": "^4.0.0"
+    "react-native": "https://github.com/expo/react-native/archive/sdk-20.0.0.tar.gz"
   }
 }

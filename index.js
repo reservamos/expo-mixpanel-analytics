@@ -1,6 +1,7 @@
 import { Platform, Dimensions } from "react-native";
 import { Constants } from "expo";
 import { Buffer } from "buffer";
+import { NetworkInfo } from "react-native-network-info";
 
 const { width, height } = Dimensions.get("window");
 
@@ -9,6 +10,7 @@ const isIosPlatform = Platform.OS === "ios";
 
 export default class ExpoMixpanelAnalytics {
   constructor(token) {
+    this.setIP = this.setIP.bind(this);
     this.ready = false;
     this.queue = [];
 
@@ -16,7 +18,7 @@ export default class ExpoMixpanelAnalytics {
     this.userId = null;
     this.clientId = Constants.deviceId;
     this.identify(this.clientId);
-
+    NetworkInfo.getIPV4Address(this.setIP);
     Constants.getWebViewUserAgentAsync().then(userAgent => {
       this.userAgent = userAgent;
       this.appName = Constants.manifest.name;
@@ -35,6 +37,10 @@ export default class ExpoMixpanelAnalytics {
       this.ready = true;
       this._flush();
     });
+  }
+
+  setIP(ip) {
+    this.ip = ip;
   }
 
   track(name, props = {}) {
@@ -117,6 +123,7 @@ export default class ExpoMixpanelAnalytics {
     data.properties.app_name = this.appName;
     data.properties.app_id = this.appId;
     data.properties.app_version = this.appVersion;
+    data.properties.ip = this.ip;
     data.properties.screen_size = this.screenSize;
     data.properties.client_id = this.clientId;
     data.properties.device_name = this.deviceName;

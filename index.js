@@ -29,7 +29,8 @@ export default class ExpoMixpanelAnalytics {
       this.appName = Constants.manifest.name;
       this.appId = Constants.manifest.slug;
       this.appVersion = Constants.manifest.version;
-      this.screenSize = `${width}x${height}`;
+      this.screenWidth = `${width}`;
+      this.screenHeight = `${height}`;
       this.deviceName = Constants.deviceName;
       if (isIosPlatform) {
         this.platform = Constants.platform.ios.platform;
@@ -124,14 +125,17 @@ export default class ExpoMixpanelAnalytics {
       data.properties.distinct_id = this.userId;
     }
     data.properties.token = this.token;
-    data.properties.user_agent = this.userAgent;
-    data.properties.app_name = this.appName;
-    data.properties.app_id = this.appId;
-    data.properties.app_version = this.appVersion;
+    data.properties["Browser"] = this.userAgent;
+    data.properties["App Name"] = this.appName;
+    data.properties["App ID"] = this.appId;
+    data.properties["App Version"] = this.appVersion;
     data.properties.ip = this.ip;
-    data.properties.screen_size = this.screenSize;
+    data.properties["Screen Width"] = this.screenWidth;
+    data.properties["Screen Height"] = this.screenHeight;
     data.properties.client_id = this.clientId;
     data.properties.device_name = this.deviceName;
+    data.properties["Mixpanel Library"] = "React Native Reservamos";
+    data.properties["Library Version"] = "0.0.7";
     if (this.platform) {
       data.properties.platform = this.platform;
     }
@@ -139,7 +143,7 @@ export default class ExpoMixpanelAnalytics {
       data.properties.model = this.model;
     }
     if (this.osVersion) {
-      data.properties.os_version = this.osVersion;
+      data.properties["OS Version"] = this.osVersion;
     }
 
     data = new Buffer(JSON.stringify(data)).toString("base64");

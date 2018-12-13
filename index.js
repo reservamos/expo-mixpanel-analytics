@@ -93,6 +93,10 @@ export default class ExpoMixpanelAnalytics {
     this._people("delete", "");
   }
 
+  getDistinctId() {
+    return this.userId;
+  }
+
   // ===========================================================================================
 
   _flush() {

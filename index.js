@@ -123,25 +123,29 @@ export default class ExpoMixpanelAnalytics {
       event: event.name,
       properties: event.props
     };
+
     if (this.userId) {
       data.properties.distinct_id = this.userId;
     }
+
+    data.properties.id = this.clientId;
     data.properties.token = this.token;
     data.properties.$browser = this.userAgent;
     data.properties.$app_version = this.appVersion;
     data.properties.ip = this.ip;
     data.properties.$screen_width = this.screenWidth;
     data.properties.$screen_height = this.screenHeight;
-    data.properties.id = this.clientId;
-    data.properties.$mixpanel_library = 'React Native Reservamos';
-    data.properties.$library_version = '0.0.9';
+    data.properties.mp_lib = 'React Native Reservamos';
+    data.properties.$lib_version = '0.0.9';
 
     if (this.platform) {
       data.properties.platform = this.platform;
     }
+
     if (this.model) {
       data.properties.$model = this.model;
     }
+
     if (this.osVersion) {
       data.properties.$os_version = this.osVersion;
     }

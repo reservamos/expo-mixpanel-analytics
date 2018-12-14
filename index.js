@@ -34,8 +34,10 @@ export default class ExpoMixpanelAnalytics {
         this.platform = Constants.platform.ios.platform;
         this.model = Constants.platform.ios.model;
         this.osVersion = Constants.platform.ios.systemVersion;
+        this.os = 'iOS';
       } else {
         this.platform = 'android';
+        this.os = 'Android';
       }
 
       this.ready = true;
@@ -131,12 +133,13 @@ export default class ExpoMixpanelAnalytics {
     data.properties.id = this.clientId;
     data.properties.token = this.token;
     data.properties.$browser = this.userAgent;
-    data.properties.$app_version = this.appVersion;
+    data.properties.$app_version_string = this.appVersion;
     data.properties.ip = this.ip;
     data.properties.$screen_width = this.screenWidth;
     data.properties.$screen_height = this.screenHeight;
     data.properties.mp_lib = 'React Native Reservamos';
     data.properties.$lib_version = '0.0.9';
+    data.properties.$os = this.os;
 
     if (this.platform) {
       data.properties.platform = this.platform;

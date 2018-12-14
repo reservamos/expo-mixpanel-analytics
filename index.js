@@ -138,7 +138,7 @@ export default class ExpoMixpanelAnalytics {
     data.properties.$screen_width = this.screenWidth;
     data.properties.$screen_height = this.screenHeight;
     data.properties.mp_lib = 'React Native Reservamos';
-    data.properties.$lib_version = '0.0.9';
+    data.properties.$lib_version = '0.0.8';
     data.properties.$os = this.os;
 
     if (this.platform) {

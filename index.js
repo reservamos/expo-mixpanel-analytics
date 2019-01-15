@@ -1,13 +1,15 @@
 import { Platform, Dimensions } from "react-native";
 import { Constants } from "expo";
 import { Buffer } from "buffer";
-
+import getIP from "./src/getIP";
 const MIXPANEL_API_URL = "http://api.mixpanel.com";
-const IPIFY_API_URL = "https://api.ipify.org/?format=json";
-const isIosPlatform = Platform.OS === "ios";
+const MIXPANEL_API_URL_TRACK = `${MIXPANEL_API_URL}/track/?data=${data}`;
+const MIXPANEL_API_URL_ENGAGE = `${MIXPANEL_API_URL}/engage/?data=${data}`;
 
 export default class ExpoMixpanelAnalytics {
   constructor(token) {
+    this._setProperties = this._setProperties.bind(this);
+    this._onPromiseError = this._onPromiseError.bind(this);
     this.ready = false;
     this.queue = [];
     this.token = token;
@@ -18,38 +20,51 @@ export default class ExpoMixpanelAnalytics {
       mp_lib: "React Native Reservamos",
       $lib_version: "1.0.1"
     };
-    const onAsyncFinished = () => {
-      const { width, height } = Dimensions.get("window");
-      this.properties.$screen_width = `${width}`;
-      this.properties.$screen_height = `${height}`;
-      this.properties.distinct_id = Constants.deviceId;
-      this.properties.id = Constants.deviceId;
-      this.properties.$app_version_string = Constants.manifest.version;
-      if (isIosPlatform) {
-        this.properties.$os = "iOS";
-        this.properties.platform = Constants.platform.ios.platform;
-        this.properties.$model = Constants.platform.ios.model;
-        this.properties.$os_version = Constants.platform.ios.systemVersion;
-      } else {
-        this.properties.platform = "android";
-        this.properties.$os = "Android";
-      }
-      this.ready = true;
-      this._flush();
+    Promise.all([getIP(), Constants.getWebViewUserAgentAsync()])
+      .then(_setProperties)
+      .catch(_onPromiseError);
+  }
+
+  _onPromiseError(err) {
+    console.log("Error trying to find ip or WebViewUserAgent", err);
+    this._setProperties([null, null]);
+  }
+
+  _parseUserAgent(userAgent) {
+    if (!userAgent || userAgent.split(";").length !== 4) return {};
+    return {
+      osVersion: userAgent.split(";")[2].trim(),
+      model: userAgent
+        .split(";")[3]
+        .trim()
+        .slice(0, -1)
     };
-    const promiseGetIP = fetch(IPIFY_API_URL)
-      .then(response => response.json())
-      .then(({ ip }) => {
-        this.properties.ip = ip;
-      });
-    const getUserAgent = Constants.getWebViewUserAgentAsync().then(
-      userAgent => {
-        this.properties.$browser = userAgent;
-      }
-    );
-    Promise.all([promiseGetIP, getUserAgent])
-      .then(onAsyncFinished)
-      .catch(err => console.log("error setting data"));
+  }
+
+  _setProperties([ip, userAgent]) {
+    this.properties.ip = ip;
+    this.properties.$browser = userAgent;
+    const { width, height } = Dimensions.get("window");
+    this.properties.$screen_width = `${width}`;
+    this.properties.$screen_height = `${height}`;
+    this.properties.distinct_id = Constants.deviceId;
+    this.properties.id = Constants.deviceId;
+    this.properties.$app_version_string = Constants.manifest.version;
+    if (Platform.OS === "ios") {
+      this.properties.$os = "iOS";
+      this.properties.platform = Constants.platform.ios.platform;
+      this.properties.$model = Constants.platform.ios.model;
+      this.properties.$os_version = Constants.platform.ios.systemVersion;
+    } else {
+      this.properties.$os = "Android";
+      this.properties.platform = "android";
+      this.properties["Android API Version"] = Platform.Version;
+      const { osVersion, model } = this._parseUserAgent(userAgent);
+      this.properties.$os_version = osVersion;
+      this.properties.$model = model;
+    }
+    this.ready = true;
+    this._flush();
   }
 
   track(name, props = {}) {
@@ -131,11 +146,11 @@ export default class ExpoMixpanelAnalytics {
 
     data = new Buffer(JSON.stringify(data)).toString("base64");
 
-    return fetch(`${MIXPANEL_API_URL}/track/?data=${data}`);
+    return fetch(MIXPANEL_API_URL_TRACK);
   }
 
   _pushProfile(data) {
     data = new Buffer(JSON.stringify(data)).toString("base64");
-    return fetch(`${MIXPANEL_API_URL}/engage/?data=${data}`);
+    return fetch(MIXPANEL_API_URL_ENGAGE);
   }
 }

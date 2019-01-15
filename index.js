@@ -21,8 +21,8 @@ export default class ExpoMixpanelAnalytics {
       $lib_version: "1.0.1"
     };
     Promise.all([getIP(), Constants.getWebViewUserAgentAsync()])
-      .then(_setProperties)
-      .catch(_onPromiseError);
+      .then(this._setProperties)
+      .catch(this._onPromiseError);
   }
 
   _onPromiseError(err) {

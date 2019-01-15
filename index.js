@@ -3,8 +3,8 @@ import { Constants } from "expo";
 import { Buffer } from "buffer";
 import getIP from "./src/getIP";
 const MIXPANEL_API_URL = "http://api.mixpanel.com";
-const MIXPANEL_API_URL_TRACK = `${MIXPANEL_API_URL}/track/?data=${data}`;
-const MIXPANEL_API_URL_ENGAGE = `${MIXPANEL_API_URL}/engage/?data=${data}`;
+const MIXPANEL_API_URL_TRACK = `${MIXPANEL_API_URL}/track/?data=`;
+const MIXPANEL_API_URL_ENGAGE = `${MIXPANEL_API_URL}/engage/?data=`;
 
 export default class ExpoMixpanelAnalytics {
   constructor(token) {
@@ -146,11 +146,11 @@ export default class ExpoMixpanelAnalytics {
 
     data = new Buffer(JSON.stringify(data)).toString("base64");
 
-    return fetch(MIXPANEL_API_URL_TRACK);
+    return fetch(MIXPANEL_API_URL_TRACK + data);
   }
 
   _pushProfile(data) {
     data = new Buffer(JSON.stringify(data)).toString("base64");
-    return fetch(MIXPANEL_API_URL_ENGAGE);
+    return fetch(MIXPANEL_API_URL_ENGAGE + data);
   }
 }

@@ -1,52 +1,70 @@
-import { Platform, Dimensions } from 'react-native';
-import { Constants } from 'expo';
-import { Buffer } from 'buffer';
-
-const { width, height } = Dimensions.get('window');
-
-const MIXPANEL_API_URL = 'http://api.mixpanel.com';
-const isIosPlatform = Platform.OS === 'ios';
+import { Platform, Dimensions } from "react-native";
+import { Constants } from "expo";
+import { Buffer } from "buffer";
+import getIP from "./src/getIP";
+const MIXPANEL_API_URL = "http://api.mixpanel.com";
+const MIXPANEL_API_URL_TRACK = `${MIXPANEL_API_URL}/track/?data=`;
+const MIXPANEL_API_URL_ENGAGE = `${MIXPANEL_API_URL}/engage/?data=`;
 
 export default class ExpoMixpanelAnalytics {
   constructor(token) {
-    this.setIP = this.setIP.bind(this);
+    this._setProperties = this._setProperties.bind(this);
+    this._onPromiseError = this._onPromiseError.bind(this);
     this.ready = false;
     this.queue = [];
-
     this.token = token;
-    this.userId = null;
     this.clientId = Constants.deviceId;
-    this.identify(this.clientId);
-    fetch('https://api.ipify.org/?format=json')
-      .then(response => response.json())
-      .then(({ ip }) => {
-        this.ip = ip;
-      })
-      .catch(err => console.log('error finding ip'));
-
-    Constants.getWebViewUserAgentAsync().then(userAgent => {
-      this.userAgent = userAgent;
-      this.appVersion = Constants.manifest.version;
-      this.screenWidth = `${width}`;
-      this.screenHeight = `${height}`;
-
-      if (isIosPlatform) {
-        this.platform = Constants.platform.ios.platform;
-        this.model = Constants.platform.ios.model;
-        this.osVersion = Constants.platform.ios.systemVersion;
-        this.os = 'iOS';
-      } else {
-        this.platform = 'android';
-        this.os = 'Android';
-      }
-
-      this.ready = true;
-      this._flush();
-    });
+    this.userId = this.clientId;
+    this.properties = {
+      token,
+      mp_lib: "React Native Reservamos",
+      $lib_version: "1.0.1"
+    };
+    Promise.all([getIP(), Constants.getWebViewUserAgentAsync()])
+      .then(this._setProperties)
+      .catch(this._onPromiseError);
   }
 
-  setIP(ip) {
-    this.ip = ip;
+  _onPromiseError(err) {
+    console.log("Error trying to find ip or WebViewUserAgent", err);
+    this._setProperties([null, null]);
+  }
+
+  _parseUserAgent(userAgent) {
+    if (!userAgent || userAgent.split(";").length !== 4) return {};
+    return {
+      osVersion: userAgent.split(";")[2].trim(),
+      model: userAgent
+        .split(";")[3]
+        .trim()
+        .slice(0, -1)
+    };
+  }
+
+  _setProperties([ip, userAgent]) {
+    this.properties.ip = ip;
+    this.properties.$browser = userAgent;
+    const { width, height } = Dimensions.get("window");
+    this.properties.$screen_width = `${width}`;
+    this.properties.$screen_height = `${height}`;
+    this.properties.distinct_id = Constants.deviceId;
+    this.properties.id = Constants.deviceId;
+    this.properties.$app_version_string = Constants.manifest.version;
+    if (Platform.OS === "ios") {
+      this.properties.$os = "iOS";
+      this.properties.platform = Constants.platform.ios.platform;
+      this.properties.$model = Constants.platform.ios.model;
+      this.properties.$os_version = Constants.platform.ios.systemVersion;
+    } else {
+      this.properties.$os = "Android";
+      this.properties.platform = "android";
+      this.properties["Android API Version"] = Platform.Version;
+      const { osVersion, model } = this._parseUserAgent(userAgent);
+      this.properties.$os_version = osVersion;
+      this.properties.$model = model;
+    }
+    this.ready = true;
+    this._flush();
   }
 
   track(name, props = {}) {
@@ -66,31 +84,31 @@ export default class ExpoMixpanelAnalytics {
   }
 
   people_set(props) {
-    this._people('set', props);
+    this._people("set", props);
   }
 
   people_set_once(props) {
-    this._people('set_once', props);
+    this._people("set_once", props);
   }
 
   people_unset(props) {
-    this._people('unset', props);
+    this._people("unset", props);
   }
 
   people_increment(props) {
-    this._people('add', props);
+    this._people("add", props);
   }
 
   people_append(props) {
-    this._people('append', props);
+    this._people("append", props);
   }
 
   people_union(props) {
-    this._people('union', props);
+    this._people("union", props);
   }
 
   people_delete_user() {
-    this._people('delete', '');
+    this._people("delete", "");
   }
 
   getDistinctId() {
@@ -123,43 +141,16 @@ export default class ExpoMixpanelAnalytics {
   _pushEvent(event) {
     let data = {
       event: event.name,
-      properties: event.props
+      properties: { ...this.properties, ...event.props }
     };
 
-    if (this.userId) {
-      data.properties.distinct_id = this.userId;
-    }
+    data = new Buffer(JSON.stringify(data)).toString("base64");
 
-    data.properties.id = this.clientId;
-    data.properties.token = this.token;
-    data.properties.$browser = this.userAgent;
-    data.properties.$app_version_string = this.appVersion;
-    data.properties.ip = this.ip;
-    data.properties.$screen_width = this.screenWidth;
-    data.properties.$screen_height = this.screenHeight;
-    data.properties.mp_lib = 'React Native Reservamos';
-    data.properties.$lib_version = '0.0.8';
-    data.properties.$os = this.os;
-
-    if (this.platform) {
-      data.properties.platform = this.platform;
-    }
-
-    if (this.model) {
-      data.properties.$model = this.model;
-    }
-
-    if (this.osVersion) {
-      data.properties.$os_version = this.osVersion;
-    }
-
-    data = new Buffer(JSON.stringify(data)).toString('base64');
-
-    return fetch(`${MIXPANEL_API_URL}/track/?data=${data}`);
+    return fetch(MIXPANEL_API_URL_TRACK + data);
   }
 
   _pushProfile(data) {
-    data = new Buffer(JSON.stringify(data)).toString('base64');
-    return fetch(`${MIXPANEL_API_URL}/engage/?data=${data}`);
+    data = new Buffer(JSON.stringify(data)).toString("base64");
+    return fetch(MIXPANEL_API_URL_ENGAGE + data);
   }
 }

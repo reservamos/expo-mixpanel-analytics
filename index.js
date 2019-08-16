@@ -1,8 +1,9 @@
-import { Platform, Dimensions } from "react-native";
-import { Constants } from "expo";
-import { Buffer } from "buffer";
-import getIP from "./src/getIP";
-const MIXPANEL_API_URL = "http://api.mixpanel.com";
+import { Platform, Dimensions } from 'react-native';
+import { Constants } from 'expo';
+import { Buffer } from 'buffer';
+import pkg from './package.json';
+import getIP from './src/getIP';
+const MIXPANEL_API_URL = 'http://api.mixpanel.com';
 const MIXPANEL_API_URL_TRACK = `${MIXPANEL_API_URL}/track/?data=`;
 const MIXPANEL_API_URL_ENGAGE = `${MIXPANEL_API_URL}/engage/?data=`;
 
@@ -17,8 +18,8 @@ export default class ExpoMixpanelAnalytics {
     this.userId = this.clientId;
     this.properties = {
       token,
-      mp_lib: "React Native Reservamos",
-      $lib_version: "1.0.1"
+      mp_lib: 'React Native Reservamos',
+      $lib_version: pkg.version
     };
     Promise.all([getIP(), Constants.getWebViewUserAgentAsync()])
       .then(this._setProperties)
@@ -26,16 +27,16 @@ export default class ExpoMixpanelAnalytics {
   }
 
   _onPromiseError(err) {
-    console.log("Error trying to find ip or WebViewUserAgent", err);
+    console.log('Error trying to find ip or WebViewUserAgent', err);
     this._setProperties([null, null]);
   }
 
   _parseUserAgent(userAgent) {
-    if (!userAgent || userAgent.split(";").length !== 4) return {};
+    if (!userAgent || userAgent.split(';').length !== 4) return {};
     return {
-      osVersion: userAgent.split(";")[2].trim(),
+      osVersion: userAgent.split(';')[2].trim(),
       model: userAgent
-        .split(";")[3]
+        .split(';')[3]
         .trim()
         .slice(0, -1)
     };
@@ -44,24 +45,30 @@ export default class ExpoMixpanelAnalytics {
   _setProperties([ip, userAgent]) {
     this.properties.ip = ip;
     this.properties.$browser = userAgent;
-    const { width, height } = Dimensions.get("window");
+    const { width, height } = Dimensions.get('window');
     this.properties.$screen_width = `${width}`;
     this.properties.$screen_height = `${height}`;
     this.properties.distinct_id = Constants.deviceId;
     this.properties.id = Constants.deviceId;
     this.properties.$app_version_string = Constants.manifest.version;
-    if (Platform.OS === "ios") {
-      this.properties.$os = "iOS";
+    if (Platform.OS === 'ios') {
+      this.properties.$os = 'iOS';
       this.properties.platform = Constants.platform.ios.platform;
-      this.properties.$model = Constants.platform.ios.model;
       this.properties.$os_version = Constants.platform.ios.systemVersion;
+      this.properties.$model = Constants.platform.ios.model;
+      this.people_set({
+        $ios_app_version: Constants.manifest.version
+      });
     } else {
-      this.properties.$os = "Android";
-      this.properties.platform = "android";
-      this.properties["Android API Version"] = Platform.Version;
+      this.properties.$os = 'Android';
+      this.properties.platform = 'android';
+      this.properties['Android API Version'] = Platform.Version;
       const { osVersion, model } = this._parseUserAgent(userAgent);
       this.properties.$os_version = osVersion;
       this.properties.$model = model;
+      this.people_set_once({
+        $android_app_version: Constants.manifest.version
+      });
     }
     this.ready = true;
     this._flush();
@@ -84,31 +91,31 @@ export default class ExpoMixpanelAnalytics {
   }
 
   people_set(props) {
-    this._people("set", props);
+    this._people('set', props);
   }
 
   people_set_once(props) {
-    this._people("set_once", props);
+    this._people('set_once', props);
   }
 
   people_unset(props) {
-    this._people("unset", props);
+    this._people('unset', props);
   }
 
   people_increment(props) {
-    this._people("add", props);
+    this._people('add', props);
   }
 
   people_append(props) {
-    this._people("append", props);
+    this._people('append', props);
   }
 
   people_union(props) {
-    this._people("union", props);
+    this._people('union', props);
   }
 
   people_delete_user() {
-    this._people("delete", "");
+    this._people('delete', '');
   }
 
   getDistinctId() {
@@ -144,13 +151,13 @@ export default class ExpoMixpanelAnalytics {
       properties: { ...this.properties, ...event.props }
     };
 
-    data = new Buffer(JSON.stringify(data)).toString("base64");
+    data = new Buffer(JSON.stringify(data)).toString('base64');
 
     return fetch(MIXPANEL_API_URL_TRACK + data);
   }
 
   _pushProfile(data) {
-    data = new Buffer(JSON.stringify(data)).toString("base64");
+    data = new Buffer(JSON.stringify(data)).toString('base64');
     return fetch(MIXPANEL_API_URL_ENGAGE + data);
   }
 }

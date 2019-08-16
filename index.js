@@ -66,7 +66,7 @@ export default class ExpoMixpanelAnalytics {
       const { osVersion, model } = this._parseUserAgent(userAgent);
       this.properties.$os_version = osVersion;
       this.properties.$model = model;
-      this.people_set_once({
+      this.people_set({
         $android_app_version: Constants.manifest.version
       });
     }

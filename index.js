@@ -1,5 +1,5 @@
 import { Platform, Dimensions } from 'react-native';
-import { Constants } from 'expo';
+import Constants from 'expo-constants';
 import { Buffer } from 'buffer';
 import pkg from './package.json';
 import getIP from './src/getIP';

@@ -27,6 +27,7 @@
   },
   "devDependencies": {
     "expo": "^32.0.0",
+    "expo-constants": "^5.0.0",
     "react": "^16.7.0",
     "react-native": "https://github.com/expo/react-native/archive/sdk-32.0.0.tar.gz"
   }

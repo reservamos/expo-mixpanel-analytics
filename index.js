@@ -14,7 +14,7 @@ export default class ExpoMixpanelAnalytics {
     this.ready = false;
     this.queue = [];
     this.token = token;
-    this.clientId = Constants.deviceId;
+    this.clientId = Constants.installationId;
     this.userId = this.clientId;
     this.properties = {
       token,
@@ -48,8 +48,8 @@ export default class ExpoMixpanelAnalytics {
     const { width, height } = Dimensions.get('window');
     this.properties.$screen_width = `${width}`;
     this.properties.$screen_height = `${height}`;
-    this.properties.distinct_id = Constants.deviceId;
-    this.properties.id = Constants.deviceId;
+    this.properties.distinct_id = Constants.installationId;
+    this.properties.id = Constants.installationId;
     this.properties.$app_version_string = Constants.manifest.version;
     if (Platform.OS === 'ios') {
       this.properties.$os = 'iOS';

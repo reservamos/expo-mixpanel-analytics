@@ -22,6 +22,7 @@ export default class ExpoMixpanelAnalytics {
 
   async _getUUID() {
     let uniqueId = null;
+    console.log('getting uuid');
     try {
       uniqueId = await AsyncStorage.getItem(UUID_STORAGE);
     } catch (e) {
@@ -30,6 +31,8 @@ export default class ExpoMixpanelAnalytics {
     if (!uniqueId) {
       uniqueId = Constants.installationId;
     }
+    console.log('returning', uniqueId);
+
     return uniqueId;
   }
 
@@ -48,7 +51,9 @@ export default class ExpoMixpanelAnalytics {
     };
   }
 
-  async _setProperties([ip, userAgent]) {
+  async _setProperties() {
+    console.log('setting properties');
+
     this.properties = {
       token: this.token,
       mp_lib: 'React Native Reservamos',
@@ -64,11 +69,13 @@ export default class ExpoMixpanelAnalytics {
     } catch (error) {
       console.log("couldn't get browserData");
     }
+    console.log('1st async');
     const { width, height } = Dimensions.get('window');
     this.properties.$screen_width = `${width}`;
     this.properties.$screen_height = `${height}`;
     this.properties.distinct_id = await this._getUUID();
     this.properties.id = await this._getUUID();
+    console.log('2st async');
     this.properties.$device_id = Constants.installationId;
     this.properties.$app_version_string = Constants.manifest.version;
     if (Platform.OS === 'ios') {

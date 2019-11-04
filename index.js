@@ -5,7 +5,7 @@ import UUID from 'uuid/v1';
 import pkg from './package.json';
 import getIP from './src/getIP';
 
-const UUID_STORAGE = '@MP_RESERVAMOS_LIB_STORAGE:UUID2';
+const UUID_STORAGE = '@MP_RESERVAMOS_LIB_STORAGE:UUID';
 const MIXPANEL_API_URL = 'http://api.mixpanel.com';
 const MIXPANEL_API_URL_TRACK = `${MIXPANEL_API_URL}/track/?data=`;
 const MIXPANEL_API_URL_ENGAGE = `${MIXPANEL_API_URL}/engage/?data=`;
@@ -22,16 +22,14 @@ export default class ExpoMixpanelAnalytics {
 
   async _getUUID() {
     let uniqueId = null;
-    console.log('getting uuid');
     try {
       uniqueId = await AsyncStorage.getItem(UUID_STORAGE);
     } catch (e) {
-      console.log("couldn't get any saved uuid");
+      console.log(e);
     }
     if (!uniqueId) {
       uniqueId = Constants.installationId;
     }
-    console.log('returning', uniqueId);
 
     return uniqueId;
   }
@@ -52,8 +50,6 @@ export default class ExpoMixpanelAnalytics {
   }
 
   async _setProperties() {
-    console.log('setting properties');
-
     this.properties = {
       token: this.token,
       mp_lib: 'React Native Reservamos',
@@ -61,21 +57,19 @@ export default class ExpoMixpanelAnalytics {
     };
     try {
       this.properties.ip = await getIP();
-    } catch (error) {
-      console.log("couldn't get any user ip");
+    } catch (e) {
+      console.log(e);
     }
     try {
       this.properties.$browser = await Constants.getWebViewUserAgentAsync();
-    } catch (error) {
-      console.log("couldn't get browserData");
+    } catch (e) {
+      console.log(e);
     }
-    console.log('1st async');
     const { width, height } = Dimensions.get('window');
     this.properties.$screen_width = `${width}`;
     this.properties.$screen_height = `${height}`;
     this.properties.distinct_id = await this._getUUID();
     this.properties.id = await this._getUUID();
-    console.log('2st async');
     this.properties.$device_id = Constants.installationId;
     this.properties.$app_version_string = Constants.manifest.version;
     if (Platform.OS === 'ios') {
@@ -134,6 +128,7 @@ export default class ExpoMixpanelAnalytics {
     const uuid = UUID();
     this.properties.distinct_id = uuid;
     this.properties.$device_id = uuid;
+    this.properties.id = uuid;
     this.userId = null;
     this._saveUUID(uuid);
   }

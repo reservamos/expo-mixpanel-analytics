@@ -5,7 +5,7 @@ import UUID from 'uuid/v1';
 import pkg from './package.json';
 import getIP from './src/getIP';
 
-const UUID_STORAGE = '@MP_RESERVAMOS_LIB_STORAGE:UUID';
+const UUID_STORAGE = '@MP_RESERVAMOS_LIB_STORAGE:UUID2';
 const MIXPANEL_API_URL = 'http://api.mixpanel.com';
 const MIXPANEL_API_URL_TRACK = `${MIXPANEL_API_URL}/track/?data=`;
 const MIXPANEL_API_URL_ENGAGE = `${MIXPANEL_API_URL}/engage/?data=`;
@@ -88,7 +88,9 @@ export default class ExpoMixpanelAnalytics {
       this.properties.$os = 'Android';
       this.properties.platform = 'android';
       this.properties['Android API Version'] = Platform.Version;
-      const { osVersion, model } = this._parseUserAgent(userAgent);
+      const { osVersion, model } = this._parseUserAgent(
+        this.properties.$browser
+      );
       this.properties.$os_version = osVersion;
       this.properties.$model = model;
       this.properties.$android_app_version = Constants.manifest.version;
@@ -105,7 +107,7 @@ export default class ExpoMixpanelAnalytics {
     this._flush();
   }
 
-  identify(userId) {
+  identify(userId, traits) {
     this.track('$identify', {
       distinct_id: userId,
       $anon_distinct_id: this.properties.distinct_id,
@@ -113,16 +115,19 @@ export default class ExpoMixpanelAnalytics {
     this.userId = userId;
     this.properties.id = userId;
     this.properties.distinct_id = userId;
+    if (traits) {
+      this.people_set_once(traits);
+    }
     this._saveUUID(userId);
   }
 
-  alias(alias) {
+  alias(alias, traits) {
     this.track('$create_alias', {
       alias: alias,
       distinct_id: this.properties.distinct_id,
     });
 
-    this.identify(alias);
+    this.identify(alias, traits);
   }
 
   reset() {

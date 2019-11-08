@@ -82,9 +82,7 @@ export default class ExpoMixpanelAnalytics {
       this.properties.$os = 'Android';
       this.properties.platform = 'android';
       this.properties['Android API Version'] = Platform.Version;
-      const { osVersion, model } = this._parseUserAgent(
-        this.properties.$browser
-      );
+      const { osVersion, model } = this._parseUserAgent(this.properties.$browser);
       this.properties.$os_version = osVersion;
       this.properties.$model = model;
       this.properties.$android_app_version = Constants.manifest.version;
@@ -102,15 +100,16 @@ export default class ExpoMixpanelAnalytics {
   }
 
   identify(userId, traits) {
+    const id = userId || this.properties.distinct_id;
     this.track('$identify', {
-      distinct_id: userId,
+      distinct_id: id,
       $anon_distinct_id: this.properties.distinct_id,
     });
-    this.userId = userId;
-    this.properties.id = userId;
-    this.properties.distinct_id = userId;
+    this.userId = id;
+    this.properties.id = id;
+    this.properties.distinct_id = id;
     if (traits) {
-      this.people_set_once(traits);
+      this.people_set(traits);
     }
     this._saveUUID(userId);
   }

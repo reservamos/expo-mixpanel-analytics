@@ -69,7 +69,7 @@ export default class ExpoMixpanelAnalytics {
     this.properties.$screen_width = `${width}`;
     this.properties.$screen_height = `${height}`;
     this.properties.distinct_id = await this._getUUID();
-    this.properties.id = await this._getUUID();
+    this.properties['$user_id'] = await this._getUUID();
     this.properties.$device_id = Constants.installationId;
     this.properties.$app_version_string = Constants.manifest.version;
     if (Platform.OS === 'ios') {
@@ -106,7 +106,7 @@ export default class ExpoMixpanelAnalytics {
       $anon_distinct_id: this.properties.distinct_id,
     });
     this.userId = id;
-    this.properties.id = id;
+    this.properties['$user_id'] = id;
     this.properties.distinct_id = id;
     if (traits) {
       this.people_set(traits);
@@ -127,7 +127,7 @@ export default class ExpoMixpanelAnalytics {
     const uuid = UUID();
     this.properties.distinct_id = uuid;
     this.properties.$device_id = uuid;
-    this.properties.id = uuid;
+    this.properties['$user_id'] = uuid;
     this.userId = null;
     this._saveUUID(uuid);
   }

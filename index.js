@@ -111,7 +111,7 @@ export default class ExpoMixpanelAnalytics {
     if (traits) {
       this.people_set(traits);
     }
-    this._saveUUID(userId);
+    this._saveUUID(this.userId);
   }
 
   alias(alias, traits) {

@@ -161,7 +161,7 @@ export default class ExpoMixpanelAnalytics {
   }
 
   getDistinctId() {
-    return this.userId;
+    return this.userId || this.properties.distinct_id;
   }
 
   // ===========================================================================================

@@ -1,5 +1,6 @@
 import { Platform, Dimensions, AsyncStorage } from 'react-native';
 import Constants from 'expo-constants';
+import * as Updates from 'expo-updates';
 import { Buffer } from 'buffer';
 import UUID from 'uuid/v1';
 import pkg from './package.json';
@@ -42,10 +43,7 @@ export default class ExpoMixpanelAnalytics {
     if (!userAgent || userAgent.split(';').length !== 4) return {};
     return {
       osVersion: userAgent.split(';')[2].trim(),
-      model: userAgent
-        .split(';')[3]
-        .trim()
-        .slice(0, -1),
+      model: userAgent.split(';')[3].trim().slice(0, -1),
     };
   }
 
@@ -55,38 +53,41 @@ export default class ExpoMixpanelAnalytics {
       mp_lib: 'React Native Reservamos',
       $lib_version: pkg.version,
     };
+
     try {
-      this.properties.ip = await getIP();
-    } catch (e) {
-      console.log(e);
-    }
-    try {
+      const ipResponse = await getIP();
+      this.properties.ip = ipResponse.ip;
+
+      const { width, height } = Dimensions.get('window');
+      this.properties.$screen_width = `${width}`;
+      this.properties.$screen_height = `${height}`;
+      this.properties.$device_id = Constants.installationId;
+      this.properties.$app_version_string = Updates?.manifest?.version;
+      this.properties.distinct_id = await this._getUUID();
+      this.properties['$user_id'] = await this._getUUID();
       this.properties.$browser = await Constants.getWebViewUserAgentAsync();
     } catch (e) {
       console.log(e);
     }
-    const { width, height } = Dimensions.get('window');
-    this.properties.$screen_width = `${width}`;
-    this.properties.$screen_height = `${height}`;
-    this.properties.distinct_id = await this._getUUID();
-    this.properties['$user_id'] = await this._getUUID();
-    this.properties.$device_id = Constants.installationId;
-    this.properties.$app_version_string = Constants.manifest.version;
+
     if (Platform.OS === 'ios') {
       this.properties.$os = 'iOS';
       this.properties.platform = Constants.platform.ios.platform;
       this.properties.$os_version = Constants.platform.ios.systemVersion;
       this.properties.$model = Constants.platform.ios.model;
-      this.properties.$ios_app_version = Constants.manifest.version;
+      this.properties.$ios_app_version = Updates?.manifest?.version;
     } else {
       this.properties.$os = 'Android';
       this.properties.platform = 'android';
       this.properties['Android API Version'] = Platform.Version;
-      const { osVersion, model } = this._parseUserAgent(this.properties.$browser);
+      const { osVersion, model } = this._parseUserAgent(
+        this.properties.$browser
+      );
       this.properties.$os_version = osVersion;
       this.properties.$model = model;
-      this.properties.$android_app_version = Constants.manifest.version;
+      this.properties.$android_app_version = Updates?.manifest?.version;
     }
+
     this.ready = true;
     this._flush();
   }

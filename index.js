@@ -2,6 +2,7 @@ import { Platform, Dimensions } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Constants from "expo-constants";
 import * as Updates from "expo-updates";
+import * as Device from "expo-device";
 import { Buffer } from "buffer";
 import UUID from "uuid/v1";
 import pkg from "./package.json";
@@ -75,7 +76,7 @@ export default class ExpoMixpanelAnalytics {
       this.properties.$os = "iOS";
       this.properties.platform = Constants.platform.ios.platform;
       this.properties.$os_version = Constants.platform.ios.systemVersion;
-      this.properties.$model = Constants.platform.ios.model;
+      this.properties.$model = Device.modelName;
       this.properties.$ios_app_version = Updates?.manifest?.version;
     } else {
       this.properties.$os = "Android";

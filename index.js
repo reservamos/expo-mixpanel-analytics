@@ -7,6 +7,7 @@ import { Buffer } from "buffer";
 import UUID from "uuid/v1";
 import pkg from "./package.json";
 import getIP from "./src/getIP";
+import getInstallationIdAsync from "./src/getInstallationId";
 
 const UUID_STORAGE = "@MP_RESERVAMOS_LIB_STORAGE:UUID";
 const MIXPANEL_API_URL = "http://api.mixpanel.com";
@@ -18,7 +19,6 @@ export default class ExpoMixpanelAnalytics {
     this.ready = false;
     this.queue = [];
     this.token = token;
-    this.clientId = Constants.installationId;
     this.userId = null;
     this._setProperties();
   }
@@ -31,7 +31,7 @@ export default class ExpoMixpanelAnalytics {
       console.log(e);
     }
     if (!uniqueId) {
-      uniqueId = Constants.installationId;
+      uniqueId = await getInstallationIdAsync();
     }
 
     return uniqueId;
@@ -63,7 +63,7 @@ export default class ExpoMixpanelAnalytics {
       const { width, height } = Dimensions.get("window");
       this.properties.$screen_width = `${width}`;
       this.properties.$screen_height = `${height}`;
-      this.properties.$device_id = Constants.installationId;
+      this.properties.$device_id = await getInstallationIdAsync();
       this.properties.$app_version_string = Updates?.manifest?.version;
       this.properties.distinct_id = await this._getUUID();
       this.properties["$user_id"] = await this._getUUID();

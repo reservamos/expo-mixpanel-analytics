@@ -25,8 +25,9 @@
   "dependencies": {
     "@react-native-async-storage/async-storage": "~1.15.0",
     "buffer": "^5.0.8",
+    "expo-application": "^4.0.2",
     "expo-device": "^4.1.1",
-    "uuid": "^3.3.3"
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "expo": "^43.0.0",

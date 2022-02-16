@@ -1,4 +1,5 @@
 import * as Application from "expo-application";
+import { Platform } from "react-native";
 import uuidv5 from "uuid/v5";
 
 let installationId;
@@ -9,15 +10,22 @@ export default async function getInstallationIdAsync() {
     return installationId;
   }
 
-  const identifierForVendor = await Application.getIosIdForVendorAsync();
+  let identifier;
+
+  if (Platform.OS === "ios") {
+    identifier = await Application.getIosIdForVendorAsync();
+  } else if (Platform.OS === "android") {
+    identifier = Application.androidId;
+  }
+
   const bundleIdentifier = Application.applicationId;
 
-  // It's unlikely identifierForVendor will be null (it returns null if the
+  // It's unlikely `identifier` will be null (it returns null if the
   // device has been restarted but not yet unlocked), but let's handle this
   // case.
-  if (identifierForVendor) {
+  if (identifier) {
     installationId = uuidv5(
-      `${bundleIdentifier}-${identifierForVendor}`,
+      `${bundleIdentifier}-${identifier}`,
       UUID_NAMESPACE
     );
   } else {

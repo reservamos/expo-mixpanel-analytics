@@ -4,7 +4,7 @@ import Constants from "expo-constants";
 import * as Updates from "expo-updates";
 import * as Device from "expo-device";
 import { Buffer } from "buffer";
-import UUID from "uuid/v1";
+import { v1 as uuidv1 } from "uuid";
 import pkg from "./package.json";
 import getIP from "./src/getIP";
 import getInstallationIdAsync from "./src/getInstallationId";
@@ -127,7 +127,7 @@ export default class ExpoMixpanelAnalytics {
   }
 
   reset() {
-    const uuid = UUID();
+    const uuid = uuidv1();
     this.properties.distinct_id = uuid;
     this.properties.$device_id = uuid;
     this.properties["$user_id"] = uuid;

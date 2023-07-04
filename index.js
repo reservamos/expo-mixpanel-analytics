@@ -10,7 +10,7 @@ import getIP from "./src/getIP";
 import getInstallationIdAsync from "./src/getInstallationId";
 
 const UUID_STORAGE = "@MP_RESERVAMOS_LIB_STORAGE:UUID";
-const MIXPANEL_API_URL = "http://api.mixpanel.com";
+const MIXPANEL_API_URL = "https://api.mixpanel.com";
 const MIXPANEL_API_URL_TRACK = `${MIXPANEL_API_URL}/track/?data=`;
 const MIXPANEL_API_URL_ENGAGE = `${MIXPANEL_API_URL}/engage/?data=`;
 
